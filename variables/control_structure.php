@@ -122,7 +122,7 @@ foreach($cars as $car) {
     if($car === "Avanza") echo "Toyota";
     else if($car === "Xenia") echo "Daihatsu";
     else if($car === "Mobilio") echo "Honda";
-    else if($car === "Ertiga") echo "Ertiga";
+    else if($car === "Ertiga") echo "Suzuki";
 }
 
 // contoh lain
