@@ -10,13 +10,13 @@
  * - Jangan mengulang2 statement .. tapi buat function untuk statement tersebut.
  * - Fungsi harus mendeskripsikan tujuan yang jelas dan to the point
  * - Pisahkan fungsi jika berbeda tujuan
- * - Jangan gunakan fungsi untuk merubah global variable
+ * - Jangan merubah nilai global variable didalam fungsi
  * - Parameter fungsi harus dibawah 2 jangan kebanyakan (Gunakan interface / object jika memungkinkan)
  * - jangan membuat fungsi global, tetapi jika terpaksa gunakan pengecekan function_exists() sebelum fungsi
  * - Hindari bool flag sebisa mungkin
  * - Return secepatnya (cek kemungkinan kesalahan terlebih dahulu)
  * - Hapus fungsi yang tidak terpakai (Manfaatkan git sebagai version control)
- * - pindahkan semua statement didalam anonymous function ke dalam register function
+ * - pindahkan semua statement didalam anonymous function ke dalam function baru agar bisa reusable
  */
 
 
@@ -57,6 +57,8 @@ function getStudent(int $id) {
             return $student;
         }
     }
+
+    return null;
 }
 
 // sebaiknya pisah fungsi jadi beberapa bagian. hal ini untuk memungkinkan reusable function nantinya
@@ -82,6 +84,9 @@ function getTeacher(int $id) : object {
             return $teacher;
         }
     }
+
+    // return empty object kalo datanya gak ditemukan
+    return (object)[];
 }
 
 // lebih baik lagi kalau dibikin object oriented dengan dependency injection biar nanti kalo unit testing bisa gampang
@@ -121,20 +126,22 @@ class Teacher {
         $this->curl = $curl;
     }
 
-    public function getAll() {
+    public function getAll() : array {
         $teachers = $this->curl->get('https://somedomain.com/to/fetch/teachers');
         return json_decode($teachers);
     }
 
     public function get(int $id ) : object {
-        $teachers = getTeachers();
+        $teachers = $this->getAll();
         foreach($teachers as $teacher) {
             if($teacher->id === $id) {
                 return $teacher;
             }
         }
+
+        return (object)[];
     }
-    // ....
+    // .... dst..
 }
 
 // production
@@ -153,10 +160,13 @@ function changeUsername() : void {
     $username = strtoupper($username);
 }
 
-// jangan gunakan fungsi untuk merubah value dari global variable
-function changePassword(string $password = '') {
+// jangan merubah nilai global variable didalam fungsi
+$password = "123456";
+function setPassword(string $password = '') {
     return md5($password);
 }
+
+$password = setPassword("superSecretPassword123456");
 
 // Contoh 4 :
 // ini sebenernya bagus, tapi bisa bentrok kalo ada orang yg nulis fungsi serupa
@@ -166,7 +176,7 @@ function config() : array {
     ];
 }
 
-// jika memang maksa pengen bikin global function maka pakai function_exists() check
+// jika memang maksa pengen bikin global function maka pakai function_exists() buat ngecek dulu
 if(!function_exists('config')) {
     function config() : array {
         return [
@@ -176,7 +186,7 @@ if(!function_exists('config')) {
 }
 
 // tapi lebih baik lagi kalo dibikin object oriented dengan namespace
-// namespace Configuration; // di comment biar ga error karena namespace di tengah file
+//namespace Configuration; // di comment biar ga error karena namespace di tengah file
 class Config {
 
     public function get() : array {
@@ -188,7 +198,7 @@ class Config {
 }
 
 // selanjutnya tinggal pakai instance Config
-// \Configuration\Config // kalo pake namespace
+//\Configuration\Config // kalo pake namespace
 function applyConfig(Config $config) {
     // ... do something
 }
@@ -204,7 +214,7 @@ function getNameNew() {
     // ....
 }
 
-// manfaatkan git / sub versioning untuk manage old code
+// manfaatkan git / sub versioning untuk manage code yang tidak terpakai
 function getName() {
     // ....
 }
@@ -226,6 +236,6 @@ function filterStudentName(object $student, string $name) {
 }
 function getStudentName(array $students, string $name) {
     return array_filter($students, function($student) use ($name) {
-        return filterStudent($student, $name);
+        return filterStudentName($student, $name);
     });
 }
